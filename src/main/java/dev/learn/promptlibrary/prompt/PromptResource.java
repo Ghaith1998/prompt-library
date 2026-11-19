@@ -64,7 +64,7 @@ public class PromptResource {
     public RestResponse<PromptResponse> create(@Valid PromptRequest request) {
         PromptResponse created = service.create(request);
         return RestResponse.ResponseBuilder
-                .created(URI.create("/api/prompts/" + created.id()))
+                .<PromptResponse>created(URI.create("/api/prompts/" + created.id()))
                 .entity(created)
                 .build();
     }

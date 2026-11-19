@@ -52,7 +52,7 @@ public class CategoryResource {
     public RestResponse<CategoryResponse> create(@Valid CategoryRequest request) {
         CategoryResponse created = service.create(request);
         return RestResponse.ResponseBuilder
-                .created(URI.create("/api/categories/" + created.id()))
+                .<CategoryResponse>created(URI.create("/api/categories/" + created.id()))
                 .entity(created)
                 .build();
     }
