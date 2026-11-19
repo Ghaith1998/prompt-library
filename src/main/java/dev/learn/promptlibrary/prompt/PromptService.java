@@ -53,7 +53,7 @@ public class PromptService {
 
     @Transactional
     public PromptResponse create(PromptRequest request) {
-        var prompt = new Prompt();
+        Prompt prompt = new Prompt();
         prompt.setOwnerId(currentUser.id());
         apply(prompt, request);
         prompts.persist(prompt);
@@ -62,7 +62,7 @@ public class PromptService {
 
     @Transactional
     public PromptResponse update(Long id, PromptRequest request) {
-        var prompt = loadAccessible(id);
+        Prompt prompt = loadAccessible(id);
         apply(prompt, request);
         prompts.flush(); // so updatedAt / version are fresh in the response
         return PromptResponse.from(prompt);
@@ -76,7 +76,7 @@ public class PromptService {
     // ---------------------------------------------------------------- helpers
 
     private Prompt loadAccessible(Long id) {
-        var prompt = prompts.findDetailed(id)
+        Prompt prompt = prompts.findDetailed(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prompt %d not found".formatted(id)));
         boolean owner = prompt.getOwnerId().equals(currentUser.id());
         if (!owner && !currentUser.isAdmin()) {

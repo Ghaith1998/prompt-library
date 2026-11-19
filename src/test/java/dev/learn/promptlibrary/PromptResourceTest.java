@@ -124,11 +124,11 @@ class PromptResourceTest {
     /** Test data goes straight through the repositories, in its own transaction. */
     private long createPromptOwnedBy(String ownerId) {
         return QuarkusTransaction.requiringNew().call(() -> {
-            var category = new Category();
+            Category category = new Category();
             category.setName("cat-" + UUID.randomUUID());
             categories.persist(category);
 
-            var prompt = new Prompt();
+            Prompt prompt = new Prompt();
             prompt.setTitle("Secret");
             prompt.setContent("x");
             prompt.setOwnerId(ownerId);

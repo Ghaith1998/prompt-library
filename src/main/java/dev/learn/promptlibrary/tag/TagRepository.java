@@ -16,7 +16,7 @@ public class TagRepository implements PanacheRepository<Tag> {
     /** Must be called inside a transaction. (Two concurrent creators could still collide on the unique index.) */
     public Tag findOrCreate(String name) {
         return findByName(name).orElseGet(() -> {
-            var tag = new Tag();
+            Tag tag = new Tag();
             tag.setName(name);
             persist(tag);
             return tag;

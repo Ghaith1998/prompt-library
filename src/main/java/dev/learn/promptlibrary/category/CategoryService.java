@@ -32,7 +32,7 @@ public class CategoryService {
         if (categories.findByName(name).isPresent()) {
             throw new ConflictException("Category '%s' already exists".formatted(name));
         }
-        var category = new Category();
+        Category category = new Category();
         category.setName(name);
         categories.persist(category);
         return CategoryResponse.from(category);

@@ -27,7 +27,7 @@ public class CategorySeeder implements Seeder {
     public void seed() {
         for (String name : List.of("Coding", "Writing", "Marketing")) {
             if (categories.findByName(name).isEmpty()) {
-                var category = new Category();
+                Category category = new Category();
                 category.setName(name);
                 categories.persist(category);
             }
