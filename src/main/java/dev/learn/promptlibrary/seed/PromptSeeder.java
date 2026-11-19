@@ -3,6 +3,7 @@ package dev.learn.promptlibrary.seed;
 import java.util.List;
 
 import dev.learn.promptlibrary.category.CategoryRepository;
+import dev.learn.promptlibrary.folder.FolderService;
 import dev.learn.promptlibrary.prompt.Prompt;
 import dev.learn.promptlibrary.prompt.PromptRepository;
 import dev.learn.promptlibrary.prompt.PromptStatus;
@@ -39,11 +40,14 @@ public class PromptSeeder implements Seeder {
     private final PromptRepository prompts;
     private final CategoryRepository categories;
     private final TagRepository tags;
+    private final FolderService folders;
 
-    public PromptSeeder(PromptRepository prompts, CategoryRepository categories, TagRepository tags) {
+    public PromptSeeder(PromptRepository prompts, CategoryRepository categories,
+                        TagRepository tags, FolderService folders) {
         this.prompts = prompts;
         this.categories = categories;
         this.tags = tags;
+        this.folders = folders;
     }
 
     @Override
@@ -65,6 +69,7 @@ public class PromptSeeder implements Seeder {
             prompt.setStatus(row.status());
             prompt.setFavorite(row.favorite());
             prompt.setCategory(categories.findByName(row.category()).orElseThrow());
+            prompt.setFolder(folders.ensureDefaultFolder(row.owner()));
             row.tags().forEach(name -> prompt.addTag(tags.findOrCreate(row.owner(), name)));
             prompts.persist(prompt);
         }

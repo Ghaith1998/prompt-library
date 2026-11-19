@@ -27,6 +27,10 @@ public record PromptRequest(
         @Schema(description = "Id of an existing category", example = "1")
         @NotNull @Positive Long categoryId,
 
+        @Schema(description = "Folder for this prompt; defaults to the owner's default folder on create",
+                example = "7")
+        @Positive Long folderId,
+
         @Schema(description = "Lifecycle status, defaults to DRAFT on create", example = "DRAFT")
         PromptStatus status,
 

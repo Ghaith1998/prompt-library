@@ -14,7 +14,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class PromptRepository implements PanacheRepository<Prompt> {
 
     // "join fetch" loads category + tags in ONE query (avoids the N+1 problem when mapping to DTOs)
-    private static final String FETCH = "from Prompt p join fetch p.category left join fetch p.tags";
+    private static final String FETCH =
+            "from Prompt p join fetch p.category join fetch p.folder left join fetch p.tags";
 
     /**
      * @param ownerId only this owner's prompts; null = everybody's (admin)
@@ -48,5 +49,9 @@ public class PromptRepository implements PanacheRepository<Prompt> {
 
     public long countByTagId(Long tagId) {
         return find("select p from Prompt p join p.tags t where t.id = ?1", tagId).count();
+    }
+
+    public long countByFolderId(Long folderId) {
+        return count("folder.id", folderId);
     }
 }
