@@ -7,9 +7,7 @@ import dev.learn.promptlibrary.category.dto.CategoryResponse;
 import dev.learn.promptlibrary.common.BaseService;
 import dev.learn.promptlibrary.common.ConflictException;
 import dev.learn.promptlibrary.prompt.PromptRepository;
-
 import io.quarkus.panache.common.Sort;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
@@ -33,12 +31,12 @@ public class CategoryService extends BaseService<Category> {
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
         String name = request.name().trim();
-        if (categories.findByName(name).isPresent()) {
-            throw new ConflictException("Category '%s' already exists".formatted(name));
-        }
+        validateNameUnique(name);
+
         Category category = new Category();
         category.setName(name);
         categories.persist(category);
+        
         return CategoryResponse.from(category);
     }
 
@@ -56,9 +54,8 @@ public class CategoryService extends BaseService<Category> {
     public CategoryResponse update(Long id, CategoryRequest request) {
         Category category = loadRequired(id);
         String name = request.name().trim();
-        if (!name.equals(category.getName()) && categories.findByName(name).isPresent()) {
-            throw new ConflictException("Category '%s' already exists".formatted(name));
-        }
+        validateNameUnique(name);
+
         category.setName(name);
         return CategoryResponse.from(category);
     }

@@ -87,9 +87,7 @@ public class PromptService extends BaseService<Prompt> {
     }
 
     private void apply(Prompt prompt, PromptRequest request) {
-        Category category = categories.findByIdOptional(request.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category %d not found".formatted(request.categoryId())));
+        Category category = loadCategoryIfExist(request.categoryId());
 
         prompt.setTitle(request.title().trim());
         prompt.setContent(request.content());
@@ -117,6 +115,12 @@ public class PromptService extends BaseService<Prompt> {
 
         // add the wanted ones (creating missing tags on the fly)
         wanted.forEach(name -> prompt.addTag(tags.findOrCreate(name)));
+    }
+
+    private Category loadCategoryIfExist(Long categoryId) {
+        return categories.findByIdOptional(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Category %d not found".formatted(categoryId)));
     }
 
     @Override

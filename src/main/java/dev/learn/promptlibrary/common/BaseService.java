@@ -17,4 +17,10 @@ public abstract class BaseService<E extends BaseEntity> {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "%s %d not found".formatted(entityName(), id)));
     }
+
+    protected final void validateNameUnique(String name) {
+        if (repository().find("name", name).firstResultOptional().isPresent()) {
+            throw new ConflictException("%s '%s' already exists".formatted(entityName(), name));
+        }
+    }
 }
