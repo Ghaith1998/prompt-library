@@ -2,7 +2,6 @@ package dev.learn.promptlibrary.prompt;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,6 +13,7 @@ import dev.learn.promptlibrary.common.ResourceNotFoundException;
 import dev.learn.promptlibrary.prompt.dto.PromptRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptResponse;
 import dev.learn.promptlibrary.security.CurrentUser;
+import dev.learn.promptlibrary.tag.Tag;
 import dev.learn.promptlibrary.tag.TagRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -104,7 +104,7 @@ public class PromptService extends BaseService<Prompt> {
     private void syncTags(Prompt prompt, Set<String> requested) {
         Set<String> wanted = requested == null ? Set.of() : requested.stream()
                 .filter(Objects::nonNull)
-                .map(s -> s.trim().toLowerCase(Locale.ROOT))
+                .map(Tag::normalizeName)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toSet());
 
@@ -113,8 +113,8 @@ public class PromptService extends BaseService<Prompt> {
                 .filter(t -> !wanted.contains(t.getName()))
                 .forEach(prompt::removeTag);
 
-        // add the wanted ones (creating missing tags on the fly)
-        wanted.forEach(name -> prompt.addTag(tags.findOrCreate(name)));
+        // add the wanted ones (creating missing tags for the prompt owner on the fly)
+        wanted.forEach(name -> prompt.addTag(tags.findOrCreate(prompt.getOwnerId(), name)));
     }
 
     private Category loadCategoryIfExist(Long categoryId) {

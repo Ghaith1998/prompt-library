@@ -45,4 +45,8 @@ public class PromptRepository implements PanacheRepository<Prompt> {
     public long countByCategoryId(Long categoryId) {
         return count("category.id", categoryId);
     }
+
+    public long countByTagId(Long tagId) {
+        return find("select p from Prompt p join p.tags t where t.id = ?1", tagId).count();
+    }
 }

@@ -65,7 +65,7 @@ public class PromptSeeder implements Seeder {
             prompt.setStatus(row.status());
             prompt.setFavorite(row.favorite());
             prompt.setCategory(categories.findByName(row.category()).orElseThrow());
-            row.tags().forEach(name -> prompt.addTag(tags.findOrCreate(name)));
+            row.tags().forEach(name -> prompt.addTag(tags.findOrCreate(row.owner(), name)));
             prompts.persist(prompt);
         }
     }
