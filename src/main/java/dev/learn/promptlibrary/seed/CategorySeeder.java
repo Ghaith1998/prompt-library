@@ -11,6 +11,9 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class CategorySeeder implements Seeder {
 
+    private static final int TARGET_COUNT = 100;
+    private static final List<String> BASE_NAMES = List.of("Coding", "Writing", "Marketing");
+
     private final CategoryRepository categories;
 
     public CategorySeeder(CategoryRepository categories) {
@@ -25,7 +28,10 @@ public class CategorySeeder implements Seeder {
     @Override
     @Transactional
     public void seed() {
-        for (String name : List.of("Coding", "Writing", "Marketing")) {
+        for (int i = 1; i <= TARGET_COUNT; i++) {
+            String name = i <= BASE_NAMES.size()
+                    ? BASE_NAMES.get(i - 1)
+                    : "Category %03d".formatted(i);
             if (categories.findByName(name).isEmpty()) {
                 Category category = new Category();
                 category.setName(name);
