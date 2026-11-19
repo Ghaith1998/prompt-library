@@ -1,5 +1,7 @@
 package dev.learn.promptlibrary.auth;
 
+import java.util.Optional;
+
 import io.smallrye.config.ConfigMapping;
 
 /** Type-safe binding of the app.keycloak.* properties (Quarkus' answer to @ConfigurationProperties). */
@@ -11,8 +13,13 @@ public interface KeycloakConfig {
 
     String realm();
 
-    /** Confidential client with "service accounts" + "direct access grants" enabled. */
+    /** Login client: direct access grants. Public in prod, so the secret is optional. */
     String clientId();
 
-    String clientSecret();
+    Optional<String> clientSecret();
+
+    /** Registration client: client_credentials + service account. */
+    String registerClientId();
+
+    String registerClientSecret();
 }

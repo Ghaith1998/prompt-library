@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,12 +58,16 @@ public class KeycloakService {
     // ------------------------------------------------------------------ login
 
     public LoginResponse login(String username, String password) {
-        HttpResponse<String> response = post(tokenUrl(), "application/x-www-form-urlencoded", form(Map.of(
+        Map<String, String> fields = new HashMap<>(Map.of(
                 "grant_type", "password",
                 "client_id", config.clientId(),
-                "client_secret", config.clientSecret(),
                 "username", username,
-                "password", password)), null);
+                "password", password));
+        config.clientSecret()
+                .filter(secret -> !secret.isBlank())
+                .ifPresent(secret -> fields.put("client_secret", secret));
+
+        HttpResponse<String> response = post(tokenUrl(), "application/x-www-form-urlencoded", form(fields), null);
 
         int status = response.statusCode();
         if (status == 200) {
@@ -118,8 +123,8 @@ public class KeycloakService {
         }
         HttpResponse<String> response = post(tokenUrl(), "application/x-www-form-urlencoded", form(Map.of(
                 "grant_type", "client_credentials",
-                "client_id", config.clientId(),
-                "client_secret", config.clientSecret())), null);
+                "client_id", config.registerClientId(),
+                "client_secret", config.registerClientSecret())), null);
 
         if (response.statusCode() != 200) {
             throw upstream("service-account token", response);
