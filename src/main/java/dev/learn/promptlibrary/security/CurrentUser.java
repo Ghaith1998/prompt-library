@@ -6,7 +6,6 @@ import java.util.Set;
 import io.quarkus.security.identity.SecurityIdentity;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
@@ -17,8 +16,11 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 @ApplicationScoped
 public class CurrentUser {
 
-    @Inject
-    SecurityIdentity identity;
+    private final SecurityIdentity identity;
+
+    public CurrentUser(SecurityIdentity identity) {
+        this.identity = identity;
+    }
 
     private Optional<JsonWebToken> token() {
         return identity.getPrincipal() instanceof JsonWebToken t ? Optional.of(t) : Optional.empty();

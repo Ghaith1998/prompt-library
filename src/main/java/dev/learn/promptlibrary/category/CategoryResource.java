@@ -22,7 +22,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-
 /** Controller layer (called "Resource" in Jakarta REST): HTTP in / HTTP out, no business logic. */
 @Path("/api/categories")
 @Produces(MediaType.APPLICATION_JSON)
@@ -68,9 +67,8 @@ public class CategoryResource {
     @APIResponse(responseCode = "403", description = "Caller is not an admin")
     @APIResponse(responseCode = "404", description = "Category not found")
     @APIResponse(responseCode = "409", description = "Name already exists")
-    public RestResponse<CategoryResponse> update(@Valid @RestPath("id") Long id, @Valid CategoryRequest request) {
-        CategoryResponse updated = service.update(id, request);
-        return RestResponse.ResponseBuilder.ok(updated).build();
+    public CategoryResponse update(@RestPath Long id, @Valid CategoryRequest request) {
+        return service.update(id, request);
     }
 
     @DELETE
@@ -80,7 +78,8 @@ public class CategoryResource {
     @APIResponse(responseCode = "204", description = "Deleted")
     @APIResponse(responseCode = "403", description = "Caller is not an admin")
     @APIResponse(responseCode = "404", description = "Category not found")
-    public RestResponse<Void> delete(@Valid @RestPath("id") Long id) {
+    @APIResponse(responseCode = "409", description = "Category is in use by prompts")
+    public RestResponse<Void> delete(@RestPath Long id) {
         service.delete(id);
         return RestResponse.noContent();
     }

@@ -9,12 +9,12 @@ import java.util.stream.Collectors;
 
 import dev.learn.promptlibrary.category.Category;
 import dev.learn.promptlibrary.category.CategoryRepository;
+import dev.learn.promptlibrary.common.BaseService;
 import dev.learn.promptlibrary.common.ResourceNotFoundException;
 import dev.learn.promptlibrary.prompt.dto.PromptRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptResponse;
 import dev.learn.promptlibrary.security.CurrentUser;
 import dev.learn.promptlibrary.tag.TagRepository;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
@@ -25,7 +25,7 @@ import jakarta.transaction.Transactional;
  *    (Quarkus has no "open session in view": lazy relations only load while the transaction is open)
  */
 @ApplicationScoped
-public class PromptService {
+public class PromptService extends BaseService<Prompt> {
 
     private final PromptRepository prompts;
     private final CategoryRepository categories;
@@ -117,5 +117,15 @@ public class PromptService {
 
         // add the wanted ones (creating missing tags on the fly)
         wanted.forEach(name -> prompt.addTag(tags.findOrCreate(name)));
+    }
+
+    @Override
+    protected PromptRepository repository() {
+        return prompts;
+    }
+
+    @Override
+    protected String entityName() {
+        return "Prompt";
     }
 }
