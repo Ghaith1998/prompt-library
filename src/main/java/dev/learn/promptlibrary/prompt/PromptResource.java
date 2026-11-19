@@ -3,11 +3,16 @@ package dev.learn.promptlibrary.prompt;
 import java.net.URI;
 import java.util.List;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestResponse;
+
 import dev.learn.promptlibrary.prompt.dto.PromptRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptResponse;
-
 import io.quarkus.security.Authenticated;
-
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -17,13 +22,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.jboss.resteasy.reactive.RestPath;
-import org.jboss.resteasy.reactive.RestQuery;
-import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("/api/prompts")
 @Produces(MediaType.APPLICATION_JSON)
