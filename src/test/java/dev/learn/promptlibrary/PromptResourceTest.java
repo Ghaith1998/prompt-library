@@ -10,6 +10,8 @@ import java.util.UUID;
 
 import dev.learn.promptlibrary.category.Category;
 import dev.learn.promptlibrary.category.CategoryRepository;
+import dev.learn.promptlibrary.folder.Folder;
+import dev.learn.promptlibrary.folder.FolderService;
 import dev.learn.promptlibrary.prompt.Prompt;
 import dev.learn.promptlibrary.prompt.PromptRepository;
 
@@ -34,6 +36,9 @@ class PromptResourceTest {
 
     @Inject
     PromptRepository prompts;
+
+    @Inject
+    FolderService folders;
 
     @Test
     void list_withoutToken_returns401() {
@@ -108,6 +113,71 @@ class PromptResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "alice", roles = "admin")
+    void create_withoutFolder_usesDefaultFolder() {
+        int categoryId = createCategoryViaApi();
+
+        given().contentType(ContentType.JSON)
+                .body("""
+                        {"title":"Default folder test","content":"x","categoryId":%d}
+                        """.formatted(categoryId))
+                .when().post("/api/prompts")
+                .then().statusCode(201)
+                .body("folderId", notNullValue())
+                .body("folderName", equalTo("default"));
+    }
+
+    @Test
+    @TestSecurity(user = "alice", roles = "admin")
+    void create_withFolder_andMoveToAnotherFolder() {
+        int categoryId = createCategoryViaApi();
+        int firstFolder = createFolderViaApi();
+        int secondFolder = createFolderViaApi();
+
+        int promptId = given().contentType(ContentType.JSON)
+                .body("""
+                        {"title":"Folder test","content":"x","categoryId":%d,"folderId":%d}
+                        """.formatted(categoryId, firstFolder))
+                .when().post("/api/prompts")
+                .then().statusCode(201)
+                .body("folderId", equalTo(firstFolder))
+                .extract().path("id");
+
+        given().contentType(ContentType.JSON)
+                .body("""
+                        {"title":"Folder test updated","content":"x","categoryId":%d}
+                        """.formatted(categoryId))
+                .when().put("/api/prompts/" + promptId)
+                .then().statusCode(200)
+                .body("folderId", equalTo(firstFolder));
+
+        given().contentType(ContentType.JSON)
+                .body("{\"folderId\":%d}".formatted(secondFolder))
+                .when().put("/api/prompts/" + promptId + "/move")
+                .then().statusCode(200)
+                .body("folderId", equalTo(secondFolder));
+
+        given().when().delete("/api/prompts/" + promptId).then().statusCode(204);
+        given().when().delete("/api/folders/" + firstFolder).then().statusCode(204);
+        given().when().delete("/api/folders/" + secondFolder).then().statusCode(204);
+    }
+
+    @Test
+    @TestSecurity(user = "alice", roles = "admin")
+    void create_withFolderOfAnotherOwner_returns404() {
+        int categoryId = createCategoryViaApi();
+        int bobDefaultFolder = folders.ensureDefaultFolder("bob").getId().intValue();
+
+        given().contentType(ContentType.JSON)
+                .body("""
+                        {"title":"Cross owner folder","content":"x","categoryId":%d,"folderId":%d}
+                        """.formatted(categoryId, bobDefaultFolder))
+                .when().post("/api/prompts")
+                .then().statusCode(404)
+                .body("code", equalTo("NOT_FOUND"));
+    }
+
+    @Test
     @TestSecurity(user = "bob")
     void user_cannotSeeSomeoneElsesPrompt() {
         long id = createPromptOwnedBy("someone-else");
@@ -121,6 +191,26 @@ class PromptResourceTest {
         given().when().get("/api/prompts/" + id).then().statusCode(200);
     }
 
+    private int createCategoryViaApi() {
+        return given().contentType(ContentType.JSON)
+                .body("{\"name\":\"%s\"}".formatted(uniqueName("cat")))
+                .when().post("/api/categories")
+                .then().statusCode(201)
+                .extract().path("id");
+    }
+
+    private int createFolderViaApi() {
+        return given().contentType(ContentType.JSON)
+                .body("{\"name\":\"%s\"}".formatted(uniqueName("folder")))
+                .when().post("/api/folders")
+                .then().statusCode(201)
+                .extract().path("id");
+    }
+
+    private static String uniqueName(String prefix) {
+        return prefix + "-" + UUID.randomUUID();
+    }
+
     /** Test data goes straight through the repositories, in its own transaction. */
     private long createPromptOwnedBy(String ownerId) {
         return QuarkusTransaction.requiringNew().call(() -> {
@@ -128,11 +218,14 @@ class PromptResourceTest {
             category.setName("cat-" + UUID.randomUUID());
             categories.persist(category);
 
+            Folder folder = folders.ensureDefaultFolder(ownerId);
+
             Prompt prompt = new Prompt();
             prompt.setTitle("Secret");
             prompt.setContent("x");
             prompt.setOwnerId(ownerId);
             prompt.setCategory(category);
+            prompt.setFolder(folder);
             prompts.persist(prompt);
             return prompt.getId();
         });

@@ -10,6 +10,8 @@ import dev.learn.promptlibrary.category.Category;
 import dev.learn.promptlibrary.category.CategoryRepository;
 import dev.learn.promptlibrary.common.BaseService;
 import dev.learn.promptlibrary.common.ResourceNotFoundException;
+import dev.learn.promptlibrary.folder.Folder;
+import dev.learn.promptlibrary.folder.FolderService;
 import dev.learn.promptlibrary.prompt.dto.PromptRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptResponse;
 import dev.learn.promptlibrary.security.CurrentUser;
@@ -30,13 +32,15 @@ public class PromptService extends BaseService<Prompt> {
     private final PromptRepository prompts;
     private final CategoryRepository categories;
     private final TagRepository tags;
+    private final FolderService folders;
     private final CurrentUser currentUser;
 
     public PromptService(PromptRepository prompts, CategoryRepository categories,
-                         TagRepository tags, CurrentUser currentUser) {
+                         TagRepository tags, FolderService folders, CurrentUser currentUser) {
         this.prompts = prompts;
         this.categories = categories;
         this.tags = tags;
+        this.folders = folders;
         this.currentUser = currentUser;
     }
 
@@ -73,6 +77,14 @@ public class PromptService extends BaseService<Prompt> {
         prompts.delete(loadAccessible(id));
     }
 
+    @Transactional
+    public PromptResponse moveToFolder(Long id, Long folderId) {
+        Prompt prompt = loadAccessible(id);
+        prompt.setFolder(folders.loadOwnedByOwner(folderId, prompt.getOwnerId()));
+        prompts.flush(); // so the response reflects the new folder
+        return PromptResponse.from(prompt);
+    }
+
     // ---------------------------------------------------------------- helpers
 
     private Prompt loadAccessible(Long id) {
@@ -88,10 +100,12 @@ public class PromptService extends BaseService<Prompt> {
 
     private void apply(Prompt prompt, PromptRequest request) {
         Category category = loadCategoryIfExist(request.categoryId());
+        Folder folder = resolveFolder(prompt, request.folderId());
 
         prompt.setTitle(request.title().trim());
         prompt.setContent(request.content());
         prompt.setCategory(category);
+        prompt.setFolder(folder);
         if (request.status() != null) {
             prompt.setStatus(request.status());
         }
@@ -99,6 +113,16 @@ public class PromptService extends BaseService<Prompt> {
             prompt.setFavorite(request.favorite());
         }
         syncTags(prompt, request.tags());
+    }
+
+    private Folder resolveFolder(Prompt prompt, Long folderId) {
+        if (folderId != null) {
+            return folders.loadOwnedByOwner(folderId, prompt.getOwnerId());
+        }
+        if (prompt.getFolder() != null) {
+            return prompt.getFolder();
+        }
+        return folders.ensureDefaultFolder(prompt.getOwnerId());
     }
 
     private void syncTags(Prompt prompt, Set<String> requested) {

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import dev.learn.promptlibrary.category.Category;
 import dev.learn.promptlibrary.common.BaseEntity;
+import dev.learn.promptlibrary.folder.Folder;
 import dev.learn.promptlibrary.tag.Tag;
 
 import jakarta.persistence.Column;
@@ -50,6 +51,11 @@ public class Prompt extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    /** The user-owned folder this prompt belongs to. */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "folder_id", nullable = false)
+    private Folder folder;
+
     /**
      * n:m, OWNING side: defines the join table. Always use Set (not List) for n:m.
      * No cascade here: tags are shared between prompts.
@@ -83,6 +89,8 @@ public class Prompt extends BaseEntity {
     public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
+    public Folder getFolder() { return folder; }
+    public void setFolder(Folder folder) { this.folder = folder; }
     public Set<Tag> getTags() { return tags; }
     public long getVersion() { return version; }
 

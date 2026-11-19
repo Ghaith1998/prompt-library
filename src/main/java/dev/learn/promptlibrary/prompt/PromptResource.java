@@ -10,6 +10,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import dev.learn.promptlibrary.prompt.dto.PromptMoveRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptRequest;
 import dev.learn.promptlibrary.prompt.dto.PromptResponse;
 import io.quarkus.security.Authenticated;
@@ -75,6 +76,16 @@ public class PromptResource {
     @APIResponse(responseCode = "404", description = "Prompt or category not found")
     public PromptResponse update(@RestPath Long id, @Valid PromptRequest request) {
         return service.update(id, request);
+    }
+
+    @PUT
+    @Path("/{id}/move")
+    @Operation(summary = "Move a prompt to another folder")
+    @APIResponse(responseCode = "200", description = "Prompt moved")
+    @APIResponse(responseCode = "400", description = "Validation failed")
+    @APIResponse(responseCode = "404", description = "Prompt or folder not found (or not yours)")
+    public PromptResponse move(@RestPath Long id, @Valid PromptMoveRequest request) {
+        return service.moveToFolder(id, request.folderId());
     }
 
     @DELETE

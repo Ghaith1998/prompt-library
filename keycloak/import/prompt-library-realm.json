@@ -8,8 +8,14 @@
   "accessTokenLifespan": 1800,
   "roles": {
     "realm": [
-      { "name": "user",  "description": "Regular user (informational)" },
-      { "name": "admin", "description": "Administrator: may create categories and sees all prompts" }
+      {
+        "name": "user",
+        "description": "Regular user (informational)"
+      },
+      {
+        "name": "admin",
+        "description": "Administrator: may create categories and sees all prompts"
+      }
     ]
   },
   "clients": [
@@ -38,8 +44,17 @@
       "lastName": "Admin",
       "enabled": true,
       "emailVerified": true,
-      "realmRoles": ["user", "admin"],
-      "credentials": [{ "type": "password", "value": "alice", "temporary": false }]
+      "realmRoles": [
+        "user",
+        "admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "6f1c2b0e-0000-4000-8000-000000000002",
@@ -49,14 +64,940 @@
       "lastName": "Builder",
       "enabled": true,
       "emailVerified": true,
-      "realmRoles": ["user"],
-      "credentials": [{ "type": "password", "value": "bob", "temporary": false }]
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "bob",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000003",
+      "username": "carol",
+      "email": "carol@example.com",
+      "firstName": "Carol",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user",
+        "admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "carol",
+          "temporary": false
+        }
+      ]
     },
     {
       "username": "service-account-prompt-library-api",
       "enabled": true,
       "serviceAccountClientId": "prompt-library-api",
-      "clientRoles": { "realm-management": ["manage-users", "view-users"] }
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users"
+        ]
+      }
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000004",
+      "username": "user04",
+      "email": "user04@example.com",
+      "firstName": "Seed",
+      "lastName": "User 04",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user04",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000005",
+      "username": "user05",
+      "email": "user05@example.com",
+      "firstName": "Seed",
+      "lastName": "User 05",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user05",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000006",
+      "username": "user06",
+      "email": "user06@example.com",
+      "firstName": "Seed",
+      "lastName": "User 06",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user06",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000007",
+      "username": "user07",
+      "email": "user07@example.com",
+      "firstName": "Seed",
+      "lastName": "User 07",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user07",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000008",
+      "username": "user08",
+      "email": "user08@example.com",
+      "firstName": "Seed",
+      "lastName": "User 08",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user08",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000009",
+      "username": "user09",
+      "email": "user09@example.com",
+      "firstName": "Seed",
+      "lastName": "User 09",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user09",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000010",
+      "username": "user10",
+      "email": "user10@example.com",
+      "firstName": "Seed",
+      "lastName": "User 10",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user10",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000011",
+      "username": "user11",
+      "email": "user11@example.com",
+      "firstName": "Seed",
+      "lastName": "User 11",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user11",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000012",
+      "username": "user12",
+      "email": "user12@example.com",
+      "firstName": "Seed",
+      "lastName": "User 12",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user12",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000013",
+      "username": "user13",
+      "email": "user13@example.com",
+      "firstName": "Seed",
+      "lastName": "User 13",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user13",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000014",
+      "username": "user14",
+      "email": "user14@example.com",
+      "firstName": "Seed",
+      "lastName": "User 14",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user14",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000015",
+      "username": "user15",
+      "email": "user15@example.com",
+      "firstName": "Seed",
+      "lastName": "User 15",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user15",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000016",
+      "username": "user16",
+      "email": "user16@example.com",
+      "firstName": "Seed",
+      "lastName": "User 16",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user16",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000017",
+      "username": "user17",
+      "email": "user17@example.com",
+      "firstName": "Seed",
+      "lastName": "User 17",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user17",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000018",
+      "username": "user18",
+      "email": "user18@example.com",
+      "firstName": "Seed",
+      "lastName": "User 18",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user18",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000019",
+      "username": "user19",
+      "email": "user19@example.com",
+      "firstName": "Seed",
+      "lastName": "User 19",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user19",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000020",
+      "username": "user20",
+      "email": "user20@example.com",
+      "firstName": "Seed",
+      "lastName": "User 20",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user20",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000021",
+      "username": "user21",
+      "email": "user21@example.com",
+      "firstName": "Seed",
+      "lastName": "User 21",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user21",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000022",
+      "username": "user22",
+      "email": "user22@example.com",
+      "firstName": "Seed",
+      "lastName": "User 22",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user22",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000023",
+      "username": "user23",
+      "email": "user23@example.com",
+      "firstName": "Seed",
+      "lastName": "User 23",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user23",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000024",
+      "username": "user24",
+      "email": "user24@example.com",
+      "firstName": "Seed",
+      "lastName": "User 24",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user24",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000025",
+      "username": "user25",
+      "email": "user25@example.com",
+      "firstName": "Seed",
+      "lastName": "User 25",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user25",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000026",
+      "username": "user26",
+      "email": "user26@example.com",
+      "firstName": "Seed",
+      "lastName": "User 26",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user26",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000027",
+      "username": "user27",
+      "email": "user27@example.com",
+      "firstName": "Seed",
+      "lastName": "User 27",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user27",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000028",
+      "username": "user28",
+      "email": "user28@example.com",
+      "firstName": "Seed",
+      "lastName": "User 28",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user28",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000029",
+      "username": "user29",
+      "email": "user29@example.com",
+      "firstName": "Seed",
+      "lastName": "User 29",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user29",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000030",
+      "username": "user30",
+      "email": "user30@example.com",
+      "firstName": "Seed",
+      "lastName": "User 30",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user30",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000031",
+      "username": "user31",
+      "email": "user31@example.com",
+      "firstName": "Seed",
+      "lastName": "User 31",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user31",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000032",
+      "username": "user32",
+      "email": "user32@example.com",
+      "firstName": "Seed",
+      "lastName": "User 32",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user32",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000033",
+      "username": "user33",
+      "email": "user33@example.com",
+      "firstName": "Seed",
+      "lastName": "User 33",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user33",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000034",
+      "username": "user34",
+      "email": "user34@example.com",
+      "firstName": "Seed",
+      "lastName": "User 34",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user34",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000035",
+      "username": "user35",
+      "email": "user35@example.com",
+      "firstName": "Seed",
+      "lastName": "User 35",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user35",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000036",
+      "username": "user36",
+      "email": "user36@example.com",
+      "firstName": "Seed",
+      "lastName": "User 36",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user36",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000037",
+      "username": "user37",
+      "email": "user37@example.com",
+      "firstName": "Seed",
+      "lastName": "User 37",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user37",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000038",
+      "username": "user38",
+      "email": "user38@example.com",
+      "firstName": "Seed",
+      "lastName": "User 38",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user38",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000039",
+      "username": "user39",
+      "email": "user39@example.com",
+      "firstName": "Seed",
+      "lastName": "User 39",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user39",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000040",
+      "username": "user40",
+      "email": "user40@example.com",
+      "firstName": "Seed",
+      "lastName": "User 40",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user40",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000041",
+      "username": "user41",
+      "email": "user41@example.com",
+      "firstName": "Seed",
+      "lastName": "User 41",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user41",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000042",
+      "username": "user42",
+      "email": "user42@example.com",
+      "firstName": "Seed",
+      "lastName": "User 42",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user42",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000043",
+      "username": "user43",
+      "email": "user43@example.com",
+      "firstName": "Seed",
+      "lastName": "User 43",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user43",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000044",
+      "username": "user44",
+      "email": "user44@example.com",
+      "firstName": "Seed",
+      "lastName": "User 44",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user44",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000045",
+      "username": "user45",
+      "email": "user45@example.com",
+      "firstName": "Seed",
+      "lastName": "User 45",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user45",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000046",
+      "username": "user46",
+      "email": "user46@example.com",
+      "firstName": "Seed",
+      "lastName": "User 46",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user46",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000047",
+      "username": "user47",
+      "email": "user47@example.com",
+      "firstName": "Seed",
+      "lastName": "User 47",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user47",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000048",
+      "username": "user48",
+      "email": "user48@example.com",
+      "firstName": "Seed",
+      "lastName": "User 48",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user48",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000049",
+      "username": "user49",
+      "email": "user49@example.com",
+      "firstName": "Seed",
+      "lastName": "User 49",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user49",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "6f1c2b0e-0000-4000-8000-000000000050",
+      "username": "user50",
+      "email": "user50@example.com",
+      "firstName": "Seed",
+      "lastName": "User 50",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user50",
+          "temporary": false
+        }
+      ]
     }
   ]
 }
