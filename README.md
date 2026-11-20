@@ -1,128 +1,305 @@
 # Prompt Library (Quarkus learning project)
 
-A small REST API to store prompts. Built to practice: **Flyway**, **ORM seeders**, **JPA/Panache entities and
-relations**, **SmallRye OpenAPI**, Spring-style layering in Quarkus, **JUnit tests** and **Keycloak**.
+A backend-only REST API for private prompt libraries. It demonstrates **Quarkus 3.40**, **JPA/Hibernate ORM + Panache**, **Flyway**, **MySQL**, **Keycloak/OIDC**, SmallRye OpenAPI, Laravel-style idempotent seeders, and Rest Assured integration tests.
+
+## What it includes
+
+- **Prompts:** CRUD, text search, status (`DRAFT`, `PUBLISHED`, `ARCHIVED`), favorites, ownership, category classification, folder assignment, and explicit folder moves.
+- **Folders:** user-owned unlimited nesting, optional parent on creation, rename, move to root/parent, and cycle protection.
+- **Tags:** user-owned normalized lowercase names, per-owner uniqueness, search, CRUD, and in-use delete protection.
+- **Categories:** global shared classes, readable by all authenticated users; only admins can write.
+- **Keycloak:** bearer JWT resource server integration, a password-grant login helper, self-registration through the Admin API, and `/api/me`.
+- **Persistence:** Flyway V1–V6, MySQL containers, ordered idempotent startup seeders, and Dev Services for integration tests.
+- **Documentation:** DBML/ER diagrams, architecture notes, UML class diagrams, project-structure guide, and manager/stakeholder documents under [`documentation/`](documentation/README.md).
+
+If you only need startup instructions, read the next three sections and then the key login example. For behavior/implementation details use the documentation map at the end.
 
 ## Prerequisites
-- JDK 21, Docker (+ Docker Compose)
-- Nothing else: the Maven wrapper is included (`./mvnw`)
 
-## Quick start (dev = docker compose)
+| Requirement | Why | Check command |
+|---|---|---|
+| JDK 21 | Java compiler/runtime | `java -version` (should report 21.x) |
+| Docker Desktop / Engine + Compose v2 | Local MySQL & Keycloak; Dev Services for tests | `docker version` and `docker compose version` |
+| `curl` (included in modern Windows/macOS/Linux) | API smoke tests | `curl --version` |
+| `jq` (optional, Linux/macOS) | Extract login response token | `jq --version` |
+
+Install **no Maven**. Use the included wrapper (`./mvnw`, `mvnw.cmd`); it fetches Maven automatically.
+No local MySQL install or Keycloak installation is needed in dev—the Compose file provides them.
+
+Suggested distributions:
+
+- JDK: [Eclipse Temurin](https://adoptium.net/) (macOS might use [SDKMAN!](https://sdkman.io/), Windows might use a JDK installer)
+- Docker: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine + Compose plugin (Linux)
+
+## Quick start (local dev)
+
+### 1. Verify Java, Docker, and the database ports
+
+Use `:8080`, `:8180`, and `:3306` for the app, Keycloak, and MySQL. Stop other services on them if necessary.
 
 ```bash
-docker compose up -d          # MySQL :3306 and Keycloak :8180 (Keycloak needs ~30-60 s on first start)
-./mvnw quarkus:dev            # app on :8080 with live reload
+java -version
+docker version
+docker compose version
 ```
 
-On startup the app runs the Flyway migrations, then the seeders (dev only).
+### 2. Start local dependencies
 
-| What | URL |
-|---|---|
-| Swagger UI | http://localhost:8080/q/swagger-ui |
-| OpenAPI (yaml / json) | http://localhost:8080/q/openapi  ·  `?format=json` |
-| Dev UI | http://localhost:8080/q/dev-ui |
-| Keycloak admin console | http://localhost:8180  (admin / admin) |
-
-Users imported into Keycloak: **alice / alice** (admin) and **bob / bob** (normal user).
-
-## Try it
+In the repository root:
 
 ```bash
-# log in (headless, password grant) and keep the token
+docker compose up -d
+```
+
+This starts MySQL on **3306** and Keycloak on **8180**, including the bundled **50-user** realm. Wait for both to be ready (usually ~30–60 seconds for the first Keycloak start).
+
+Useful checks (same command on all three OSes):
+
+```bash
+docker compose ps
+docker compose logs mysql
+docker compose logs keycloak
+# follow Keycloak logs; Ctrl+C to stop following, not to stop the container
+docker compose logs -f keycloak
+```
+
+Windows tip: `docker compose` is used in PowerShell/CMD too, not `docker-compose` for the current plugin.
+
+### 3. Start the API
+
+Bash on Linux/macOS:
+
+```bash
+./mvnw quarkus:dev
+```
+
+Windows PowerShell or CMD:
+
+```powershell
+.\mvnw.cmd quarkus:dev
+```
+
+Open:
+
+| Service | Address | Local credentials / note |
+|---|---|---|
+| REST API | http://localhost:8080 | all `/api` routes described below |
+| Swagger UI | http://localhost:8080/q/swagger-ui | interactive API tests, add bearer token under Authorize |
+| OpenAPI | http://localhost:8080/q/openapi or `?format=json` | generated specification |
+| Dev UI | http://localhost:8080/q/dev-ui | local diagnostic dev interface |
+| Keycloak Admin Console | http://localhost:8180 | `admin / admin` |
+| MySQL | `localhost:3306` | DB `promptlib`, user/password `promptlib/promptlib` |
+
+Startup performs migrations then seeding. First query may require waiting for Keycloak to finish booting.
+
+### 4. Log in and call the API
+
+The bundled realm includes these sample users (all with matching fixed ownership IDs):
+
+| Username | Password | Realm roles |
+|---|---|---|
+| `alice` | `alice` | `admin`, `user` |
+| `bob` | `bob` | `user` |
+| `carol` | `carol` | `admin`, `user` |
+| `user04` … `user50` | each user's own username | `user` |
+
+Linux/macOS (bash, `jq` required just for convenience):
+
+```bash
 TOKEN=$(curl -s -X POST localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"alice","password":"alice"}' | jq -r .accessToken)
 
-curl -s localhost:8080/api/me         -H "Authorization: Bearer $TOKEN"
-curl -s localhost:8080/api/prompts    -H "Authorization: Bearer $TOKEN"
-curl -s "localhost:8080/api/prompts?q=review" -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:8080/api/me -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:8080/api/prompts -H "Authorization: Bearer $TOKEN"
+```
 
+Windows PowerShell (no `jq` required):
+
+```powershell
+$login = Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/auth/login' `
+    -ContentType 'application/json' `
+    -Body @{ username = 'alice'; password = 'alice' } | ConvertTo-Json
+$token = $login.accessToken
+$headers = @{ Authorization = "Bearer $token" }
+
+Invoke-RestMethod -Uri 'http://localhost:8080/api/me' -Headers $headers
+Invoke-RestMethod -Uri 'http://localhost:8080/api/prompts' -Headers $headers
+```
+
+Swagger UI alternative: obtain `accessToken`, click **Authorize**, and paste it as provided (without any prefix).
+
+### 5. Stop / restart / clean reset
+
+`/tmp` is not used for persistence.
+
+```bash
+docker compose down          # stop Compose services; MySQL data remains in mysql_data
+docker compose down -v       # also delete MySQL data volume (fresh migrations + seeds next run)
+docker compose up -d
+```
+
+Keycloak has no data volume here, so Compose down/up starts a fresh imported realm. Any already imported realm is **not** updated by changing `keycloak/import/prompt-library-realm.json`; create it fresh via `docker compose down -v` when changing it.
+
+## API overview
+
+### Auth
+
+| Route | Method | Auth | Behavior |
+|---|---|---|---|
+| `/api/auth/register` | POST | Public | Creates user in Keycloak via Admin API; 201 / 400 / 409 / 502 |
+| `/api/auth/login` | POST | Public | Password-grant tokens for learning and scripts |
+| `/api/me` | GET | Authenticated | Returns caller id, username, email if present, roles |
+
+For an actual frontend, prefer Authorization Code + PKCE directly against Keycloak instead of sharing user passwords with this helper login route. Users live in Keycloak, **never in a local users table**.
+
+### Prompts (`/api/prompts`)
+
+| Method | Path | Behavior |
+|---|---|---|
+| GET | `/api/prompts` | List (admin all, others' own only), `?q=` title/content substring, newest first |
+| GET | `/api/prompts/{id}` | Read a prompt by id (or foreign id as 404) |
+| POST | `/api/prompts` | Create as owner. `categoryId` required; optional `folderId`, `status`, `favorite`, `tags`; absent folderId means the owner’s `default` folder |
+| PUT | `/api/prompts/{id}` | Replace an existing prompt preserving owner; missing `folderId` retains the current folder |
+| PUT | `/api/prompts/{id}/move` | Move to another folder using `{ "folderId": <id> }`, provided it belongs to the prompt owner |
+| DELETE | `/api/prompts/{id}` | Delete prompt; cascades associated prompt_tag links |
+
+Creation example (after creating or selecting an existing category with id 1 and folder with id 7):
+
+```bash
 curl -s -X POST localhost:8080/api/prompts -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"title":"My prompt","content":"Do X","categoryId":1,"tags":["Java","demo"]}'
-
-# self-register a new user (goes through the Keycloak Admin API), then log in as that user
-curl -s -X POST localhost:8080/api/auth/register -H 'Content-Type: application/json' \
-  -d '{"username":"carol","email":"carol@example.com","password":"S3cret-pass!","firstName":"Carol","lastName":"Coder"}'
+  -d '{"title":"Backend example","content":"You are a senior Java reviewer...","categoryId":1,"folderId":7,"tags":["java","review"]}'
 ```
 
-In Swagger UI click **Authorize** and paste the `accessToken` (security scheme `jwt`).
+Status name (`PromptStatus`), category/folder ids and names, ownerId, sorted tag names, favorite flag, createdAt and updatedAt appear in the returned DTO.
 
-Rules implemented: normal users only see/change **their own** prompts (others return 404), `admin` sees all and is the
-only one who may create categories.
+### Folders (`/api/folders`)
 
-## Project layout (package by feature)
+- GET `/api/folders`: own tree as flat `id/name/ownerId/parentId/isDefault` (admin sees all).
+- GET `/api/folders/{id}`: fetch one owned/accessible folder.
+- POST `/api/folders`: `{ "name": "Backend", "parentId": null }` (root), or pass a parent id for nesting.
+- PUT `/api/folders/{id}`: rename; duplicate names per owner forbidden.
+- DELETE `/api/folders/{id}`: empty non-default folders only (204).
+- PUT `/api/folders/{id}/move`: `{ "parentId": <newParentId> }`; `null` puts folder at root.
 
-```
-dev.learn.promptlibrary
-├── prompt/     Prompt (entity) · PromptRepository · PromptService · PromptResource · dto/
-├── category/   same pattern (1:n with Prompt)
-├── tag/        same pattern (n:m with Prompt)
-├── auth/       register + login against Keycloak (KeycloakService uses the JDK HttpClient)
-├── security/   CurrentUser (reads the token) · /api/me
-├── seed/       Seeder interface · DatabaseSeeder · CategorySeeder · PromptSeeder
-└── common/     BaseEntity · exceptions · ExceptionMappers (= @ControllerAdvice)
-```
+Default/root folder is automatically created when necessary, and can be seen from folder lists. You cannot rename, move, or delete it. Moving under itself or one of its descendants is a 409 (cycle detection walks the actual parent chain). Deleting a folder with prompts or child folders returns 409 as well.
 
-Spring Boot → Quarkus cheat sheet: `@RestController` → `@Path` resource, `@Service` → `@ApplicationScoped`,
-`@Autowired` → constructor injection / `@Inject`, `JpaRepository` → `PanacheRepository`, `@ControllerAdvice` →
-`@ServerExceptionMapper`, `application.yml` profiles → `%dev.` / `%test.` / `%prod.` prefixes.
+### Tags (`/api/tags`)
 
-## Flyway cheat sheet
+- GET `/api/tags` plus optional `?q=`: own tags only; admins see all with substring filtering.
+- GET `/api/tags/{id}`: read a tag by id, or 404 if not yours.
+- POST `/api/tags`: creates an owner-scoped tag, trims and lowercases names; duplicate name per owner returns 409.
+- PUT `/api/tags/{id}`: rename a tag, with a per-owner duplicate check.
+- DELETE `/api/tags/{id}`: delete an unused tag; any existing prompt association returns 409.
 
-- Migrations: `src/main/resources/db/migration/V<n>__description.sql`. Applied in order, recorded in table `flyway_schema_history`.
-- **Never edit a migration that has been applied anywhere.** Add a new `V5__...` instead (checksums are verified).
-- V3 + V4 show the safe pattern for a NOT NULL column on a table that may already contain rows: add nullable → backfill → tighten.
-- Hibernate never touches the schema (`schema-management.strategy=none`). Flyway is the only owner.
-- Reset the dev database completely: `docker compose down -v && docker compose up -d` (Flyway + seeders rebuild everything).
+Two users can own identically named tags: DB uniqueness is `(owner_id, name)`, not a global name.
 
-### Connecting to an already existing database ("staging")
-```bash
-export DB_URL='jdbc:mysql://my-host:3306/my_db' DB_USER=... DB_PASSWORD=...
-export OIDC_URL='https://my-keycloak/realms/prompt-library' KEYCLOAK_BASE_URL='https://my-keycloak'
-export KEYCLOAK_CLIENT_SECRET=...
-./mvnw quarkus:dev -Dquarkus.profile=staging
-```
-- Seeders stay **off** there (`app.seed.enabled=false` outside `%dev`).
-- If that database already has tables that Flyway did not create, add
-  `%staging.quarkus.flyway.baseline-on-migrate=true` and `%staging.quarkus.flyway.baseline-version=1`
-  (treats V1 as already applied; only V2+ run). Use a copy of the database first.
-- For a packaged run: `./mvnw package && java -Dquarkus.profile=staging -jar target/quarkus-app/quarkus-run.jar`.
+### Categories (`/api/categories`)
 
-## Seeders (Laravel style)
-Implement `Seeder` and annotate the class `@ApplicationScoped` — it is picked up automatically, sorted by `order()`,
-and uses entities + repositories (ORM), not SQL. They run only when `app.seed.enabled=true` (set in `%dev`).
-Fake/dev data belongs in seeders; data that must exist in every environment belongs in Flyway migrations.
+- GET `/api/categories`: globally shared sorted names (authenticated users).
+- POST/PUT/DELETE + `/{id}`: **admin-only**.
+- Duplicate names or deleting a category referenced by prompts → 409.
+- Non-admin writes → 403.
 
-## Entities: where to look
-`prompt/Prompt.java` is heavily commented: `@ManyToOne` (owning, LAZY), `@ManyToMany` + `@JoinTable` (owning side, `Set`),
-`@Version` (optimistic locking), `@Enumerated(STRING)`, timestamps in `BaseEntity`, `equals/hashCode`.
-`Category.prompts` and `Tag.prompts` are the inverse sides (`mappedBy`).
-Gotcha: no open-session-in-view in Quarkus — services map entities to DTOs **inside** `@Transactional` methods.
+## Tests and build
 
-## Tests
+Dev tests start **their own disposable MySQL and Keycloak**, not the Compose ones. Docker must be running. No live tokens are necessary because tests use `@TestSecurity`.
+
+Bash:
 
 ```bash
 ./mvnw test
+./mvnw test -Dtest=PromptResourceTest
+./mvnw test -Dtest=FolderResourceTest
+./mvnw test -Dtest=TagResourceTest
 ```
-Needs Docker: Quarkus Dev Services starts a throw-away MySQL and Keycloak for the test run (nothing configured under `%test`
-on purpose). `@TestSecurity` fakes the logged-in user, so tests don't need real tokens.
 
-## Keycloak notes
-- Realm `prompt-library` is imported from `keycloak/import/prompt-library-realm.json` on first start.
-  Without a volume, `docker compose down` resets Keycloak and the realm is re-imported.
-- Client `prompt-library-api` (secret `dev-secret-change-me`) has *service accounts* (used to create users) and
-  *direct access grants* (used for the headless login). The password grant is for learning/scripts; real frontends should
-  use Authorization Code + PKCE.
-- Only `admin` is checked as a role. Everybody authenticated is a normal user, so self-registered users work
-  without extra role mapping.
-- Keycloak 24+ requires first name, last name and e-mail, otherwise password logins fail with "Account is not fully set up".
+Windows PowerShell/CMD:
+
+```powershell
+.\mvnw.cmd test
+.\mvnw.cmd test '-Dtest=PromptResourceTest'
+.\mvnw.cmd test '-Dtest=FolderResourceTest'
+.\mvnw.cmd test '-Dtest=TagResourceTest'
+```
+
+Compile without starting any containers:
+
+```bash
+./mvnw -DskipTests test-compile
+```
+
+Package and run a normal JVM JAR:
+
+```bash
+./mvnw package
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+The packaged run defaults to `prod` and should use environment-provided DB/Flyway/Keycloak values. Do not point it at production data without checking migration + seeding settings first. `prod` disables seeders; `%dev` and `%staging` currently enable them.
+
+## Deployment and configuration notes
+
+Configuration lives in `src/main/resources/application.properties`.
+
+| Profile | Purpose | Infra | Seeding |
+|---|---|---|---|
+| `%dev` (default in `quarkus:dev`) | Local Compose | localhost:3306 and :8180 with imported realm | on |
+| `%test` | Isolated integration tests | Quarkus Dev Services | off by default |
+| `%staging` | External staging environment | env-based DB/Keycloak | on |
+| `%prod` | External deployed environment, often a JAR | env-based DB/Keycloak | off |
+
+The important external variables are:
+
+```text
+DB_URL, DB_USER, DB_PASSWORD
+OIDC_URL, OIDC_CLIENT_ID
+KEYCLOAK_BASE_URL, KEYCLOAK_REALM
+KEYCLOAK_LOGIN_CLIENT_ID, KEYCLOAK_LOGIN_CLIENT_SECRET
+KEYCLOAK_REGISTER_CLIENT_ID, KEYCLOAK_REGISTER_CLIENT_SECRET
+```
+
+`prod.env` and `staging.env` are **tracked templates** for these values; `.env` is local-only and ignored by git. Never put production passwords in tracked env templates. OIDC validation and direct Keycloak calls (`quarkus.oidc.*` vs `app.keycloak.*`) must agree on host, realm, and client.
+
+Current staging/prod defaults use the local-style `prompt-library` realm and `prompt-library-api` client, and no access-token audience check to match that realm. If using `promptlib-edge` / split clients again, enable audience validation and matching Keycloak audience mapper deliberately.
+
+## Database migrations and seed data
+
+Flyway exclusively owns SQL DDL (`quarkus.hibernate-orm.schema-management.strategy=none`). Current migrations cover:
+
+1. Base categories/tags/prompts/prompt_tags
+2. Favorite field
+3. Prompt owner id, then mandatory ownership
+4. User-owned tags with owner/name uniqueness
+5. User-owned folders + required prompt folder assignment
+
+Always add a new version—never edit a migration after some environment applied it. Add NOT NULL fields using nullable → backfill → tighten patterns. Foreign keys require DB-level `REFERENCES` privileges (discovered relevant for prod/staging).
+
+Dev seed order is **Category → Folder → Tag → Prompt** (`order()` 10/15/20/30):
+
+- 50 Keycloak user IDs built deterministically in `SeedUsers` and matched to the realm import.
+- 100 categories, 100 folders (default + one nested folder per user), 100 owner-scoped tags, 100 prompts (2 per user).
+- Two tags per generated prompt by default; the join count is larger than 100 because joins store one row per prompt-tag pair.
+- Seeders are idempotent through name/title lookups; existing records are not removed. Repeated runs can yield larger totals if old or custom data remains.
 
 ## Troubleshooting
-- **Maven cannot resolve `quarkus-bom:3.40.0`** → change `quarkus.platform.version` in `pom.xml` (see https://quarkus.io/releases).
-- **`docker compose up` cannot pull the Keycloak image** → pick an existing 26.x tag in `docker-compose.yml`.
-- **App starts but 401 on every call / OIDC errors on boot** → Keycloak is still starting; wait and retry.
-- **`/api/auth/register` returns 502** → check the app log. Most likely the service account lacks permissions:
-  Keycloak admin → Clients → `prompt-library-api` → *Service accounts roles* → assign `realm-management` → `manage-users`.
-- **Seeded prompts not visible for alice/bob** → Keycloak must have been started from the bundled realm file
-  (the seeders use the fixed user ids from it).
+
+- **`java` / `mvnw` cannot find Java:** install Temurin 21 or set `JAVA_HOME` to JDK 21 before running the wrapper.
+- **Offline wrapper download fails:** wrapper requires network on first use; download it via another machine / cache Maven artifacts before running.
+- **`quarkus-bom` resolution problems:** verify `quarkus.platform.version` in `pom.xml` (currently 3.40.1.2); do not assume arbitrary versions exist.
+- **Keycloak port/realm/admin page unavailable:** container is still starting, crashed, or using a different mapping/config. Inspect `docker compose logs keycloak`.
+- **Registration returns 502:** Keycloak service account requires `realm-management.manage-users`.
+- **Realm has no newly added users:** `--import-realm` does not update an existing realm. Remove its data store and start fresh, or add/update users through Admin API.
+- **401 on valid-looking endpoints:** use `Authorization: Bearer <accessToken>`, ensure realm URLs match on both outbound Keycloak settings and incoming OIDC validation.
+- **Startup hangs on `localhost:8080` usage:** app may still be starting, or another process already has the port; change `quarkus.http.port`.
+- **Tests fail with "Docker daemon" error:** `mvn test` uses disposable containers. No `%test` database config is intended.
+
+## Documentation map
+
+- [`documentation/README.md`](documentation/README.md): documentation index and reading paths
+- [`documentation/database/`](documentation/database/README.md): schema tables, DBML and simplified ER diagram
+- [`documentation/architecture/`](documentation/architecture/overview.md): end-to-end layer responsibilities and flows
+- [`documentation/folder-structure/`](documentation/folder-structure/README.md): repository map and where edits belong
+- [`documentation/uml/`](documentation/uml/README.md): UML coverage for entity, service, resource, integration, DTO, error, seeder and repository types
+- [`documentation/project-description/`](documentation/project-description/overview.md): stakeholder overview, acceptance coverage, operations and release notes

@@ -13,6 +13,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+/**
+ * An owner-scoped label. The database key `(owner_id, name)` permits the same
+ * text for different users without sharing the actual Tag entity.
+ */
 @Entity
 @Table(name = "tags", uniqueConstraints = @UniqueConstraint(
         name = "uq_tags_owner_name", columnNames = {"owner_id", "name"}))

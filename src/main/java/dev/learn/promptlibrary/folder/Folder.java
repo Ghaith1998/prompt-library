@@ -15,6 +15,11 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+/**
+ * A user-owned folder node. Its optional parent forms a tree (root => null),
+ * while its prompt set is one-to-many. The protected root default folder is
+ * recognized by name rather than by a separate database boolean column.
+ */
 @Entity
 @Table(name = "folders", uniqueConstraints = @UniqueConstraint(
         name = "uq_folders_owner_name", columnNames = {"owner_id", "name"}))

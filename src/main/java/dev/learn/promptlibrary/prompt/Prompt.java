@@ -20,6 +20,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
+/**
+ * Persistent prompt content and its organization metadata.
+ * Ownership is a Keycloak subject, not a foreign key to a local user table.
+ */
+/**
+ * Persistent prompt content and its organization metadata.
+ * Ownership is a Keycloak subject, not a foreign key to a local user table.
+ */
 @Entity
 @Table(name = "prompts")
 public class Prompt extends BaseEntity {

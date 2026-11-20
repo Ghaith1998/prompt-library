@@ -12,8 +12,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * Shared columns for every entity.
- * IDENTITY = MySQL AUTO_INCREMENT (matches the Flyway migrations).
+ * Shared persistence identity and audit timestamps for every entity.
+ * IDENTITY generates MySQL AUTO_INCREMENT ids matching the Flyway DDL;
+ * Hibernate owns creation/update timestamps when an entity changes.
  */
 @MappedSuperclass
 public abstract class BaseEntity {

@@ -12,6 +12,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Global classification for prompts (not owner-scoped, unlike folders or tags).
+ * Its unique name is also the business key used by equals/hashCode.
+ */
 @Entity
 @Table(name = "categories")
 public class Category extends BaseEntity {

@@ -1,0 +1,82 @@
+// Prompt Library logical schema (db/migration V1..V6)
+// PostgreSQL is NOT used: DDL targets MySQL. `ref` lines document logical relations.
+Table categories {
+  id bigint [pk, increment]
+  name varchar(100) [not null, unique]
+  created_at datetime(6) [not null]
+  updated_at datetime(6) [not null]
+}
+
+Table folders {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  owner_id varchar(36) [not null, note: 'Keycloak subject (sub); no local users table']
+  parent_id bigint [null, ref: > folders.id]
+  created_at datetime(6) [not null]
+  updated_at datetime(6) [not null]
+
+  indexes {
+    parent_id [name: 'idx_folders_parent']
+    (owner_id, name) [unique, name: 'uq_folders_owner_name']
+  }
+}
+
+Table tags {
+  id bigint [pk, increment]
+  name varchar(50) [not null]
+  owner_id varchar(36) [not null, note: 'Keycloak subject (sub); no local users table']
+  created_at datetime(6) [not null]
+  updated_at datetime(6) [not null]
+
+  indexes {
+    owner_id [name: 'idx_tags_owner']
+    (owner_id, name) [unique, name: 'uq_tags_owner_name']
+  }
+}
+
+Table prompts {
+  id bigint [pk, increment]
+  title varchar(200) [not null]
+  content text [not null]
+  status varchar(20) [not null, note: 'DRAFT | PUBLISHED | ARCHIVED']
+  category_id bigint [not null, ref: > categories.id]
+  is_favorite boolean [not null, default: false]
+  owner_id varchar(36) [not null, note: 'Keycloak subject (sub); no local users table']
+  folder_id bigint [not null, ref: > folders.id]
+  version bigint [not null, default: 0]
+  created_at datetime(6) [not null]
+  updated_at datetime(6) [not null]
+
+  indexes {
+    owner_id [name: 'idx_prompts_owner']
+    folder_id [name: 'idx_prompts_folder']
+  }
+}
+
+Table prompt_tags {
+  prompt_id bigint [not null, ref: > prompts.id]
+  tag_id bigint [not null, ref: > tags.id]
+
+  indexes {
+    (prompt_id, tag_id) [pk]
+  }
+}
+
+Table flyway_schema_history {
+  installed_rank int [pk, increment]
+  version varchar(50) [null]
+  description varchar(200) [not null]
+  type varchar(20) [not null]
+  script varchar(1000) [not null]
+  checksum int [null]
+  installed_by varchar(100) [not null]
+  installed_on timestamp [not null, default: `cur_timestamp()`]
+  execution_time int [not null]
+  success boolean [not null]
+}
+
+Ref: categories.id < prompts.category_id
+Ref: folders.id < prompts.folder_id
+Ref: folders.parent_id < folders.id
+Ref: prompts.id < prompt_tags.prompt_id
+Ref: tags.id < prompt_tags.tag_id

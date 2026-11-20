@@ -3,8 +3,10 @@ package dev.learn.promptlibrary.common;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 
 /**
- * Shared behavior for services that load entities by their Long id.
- * Concrete services keep their own scope, constructor injection and transaction boundaries.
+ * Shared service primitive: load an entity by Long id or raise a consistent 404.
+ * Subclasses supply their Panache repository and the name used in error messages.
+ * Transactions, DTO mapping, ownership checks, and feature invariants must remain
+ * in the concrete services; this is not a generic CRUD service.
  */
 public abstract class BaseService<E extends BaseEntity> {
 
