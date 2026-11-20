@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Folder creation payload; an absent parentId creates a root folder. */
 @Schema(name = "FolderRequest", description = "Payload to create a folder")
 public record FolderRequest(
         @Schema(description = "Folder name, unique per owner", example = "Backend")

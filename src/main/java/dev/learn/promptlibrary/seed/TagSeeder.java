@@ -5,6 +5,7 @@ import dev.learn.promptlibrary.tag.TagRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+/** Ensures two owner-scoped demo tags exist for each of the 50 fixed users. */
 @ApplicationScoped
 public class TagSeeder implements Seeder {
 

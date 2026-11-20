@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Immutable identity projection read directly from token claims. */
 @Schema(name = "MeResponse", description = "Who am I, according to my token")
 public record MeResponse(
         @Schema(description = "Keycloak user id (sub)") String id,

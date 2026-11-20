@@ -8,6 +8,7 @@ import dev.learn.promptlibrary.category.CategoryRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+/** Idempotently ensures the first 100 development categories exist by name. */
 @ApplicationScoped
 public class CategorySeeder implements Seeder {
 

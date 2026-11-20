@@ -22,6 +22,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+/**
+ * HTTP boundary for owner-scoped tag CRUD and filtered listing.
+ * Ownership rules and delete-in-use protection are implemented in {@link TagService}.
+ */
 @Path("/api/tags")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

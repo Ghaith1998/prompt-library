@@ -6,8 +6,9 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 /**
- * Quarkus equivalent of Spring's @ControllerAdvice.
- * Bean Validation errors (@Valid) are already turned into HTTP 400 by Quarkus itself.
+ * Central translation from domain exceptions to the API's uniform {@link ApiError}
+ * shape. HTTP status is chosen here, keeping services free of transport concerns.
+ * Bean Validation errors are already turned into HTTP 400 by Quarkus.
  */
 public class ExceptionMappers {
 

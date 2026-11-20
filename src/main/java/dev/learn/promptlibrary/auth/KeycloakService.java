@@ -117,6 +117,10 @@ public class KeycloakService {
 
     // ------------------------------------------------------------------ admin
 
+    /**
+     * Returns a cached client-credentials token, refreshing 30 seconds before
+     * expiry. Synchronization prevents parallel callers from stampeding Keycloak.
+     */
     private synchronized String adminToken() {
         if (adminToken != null && Instant.now().isBefore(adminTokenExpiresAt.minusSeconds(30))) {
             return adminToken;

@@ -7,6 +7,10 @@ import dev.learn.promptlibrary.folder.FolderService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+/**
+ * Gives each of the 50 demo users a root default folder and one nested
+ * demonstration folder. The default get-or-create call keeps reruns safe.
+ */
 @ApplicationScoped
 public class FolderSeeder implements Seeder {
 

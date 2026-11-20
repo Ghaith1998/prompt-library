@@ -9,6 +9,7 @@ import dev.learn.promptlibrary.tag.Tag;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Fully mapped response; associations must be loaded inside a service transaction. */
 @Schema(name = "PromptResponse", description = "A prompt as returned by the API")
 public record PromptResponse(
         @Schema(example = "42") Long id,

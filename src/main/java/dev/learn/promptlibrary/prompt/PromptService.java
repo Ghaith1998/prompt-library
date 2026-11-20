@@ -77,6 +77,7 @@ public class PromptService extends BaseService<Prompt> {
         prompts.delete(loadAccessible(id));
     }
 
+    /** Moves a prompt to a folder owned by the same Keycloak subject and returns fresh DTO state. */
     @Transactional
     public PromptResponse moveToFolder(Long id, Long folderId) {
         Prompt prompt = loadAccessible(id);
@@ -87,6 +88,10 @@ public class PromptService extends BaseService<Prompt> {
 
     // ---------------------------------------------------------------- helpers
 
+    /**
+     * Loads the fetch-graph for a prompt and returns 404 rather than 403 when it
+     * belongs to another user. Admins bypass only the ownership visibility rule.
+     */
     private Prompt loadAccessible(Long id) {
         Prompt prompt = prompts.findDetailed(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prompt %d not found".formatted(id)));
@@ -98,6 +103,11 @@ public class PromptService extends BaseService<Prompt> {
         return prompt;
     }
 
+    /**
+     * Applies the write contract to a new or existing prompt. Validation-backed
+     * DTO values become associations here, while omitted optional fields keep
+     * their create/update semantics.
+     */
     private void apply(Prompt prompt, PromptRequest request) {
         Category category = loadCategoryIfExist(request.categoryId());
         Folder folder = resolveFolder(prompt, request.folderId());
@@ -115,6 +125,11 @@ public class PromptService extends BaseService<Prompt> {
         syncTags(prompt, request.tags());
     }
 
+    /**
+     * Explicit folder changes must reference the prompt owner's folder. With no
+     * explicit folder, an existing prompt keeps its placement and a new prompt
+     * lazily receives the owner's default folder.
+     */
     private Folder resolveFolder(Prompt prompt, Long folderId) {
         if (folderId != null) {
             return folders.loadOwnedByOwner(folderId, prompt.getOwnerId());
@@ -125,6 +140,11 @@ public class PromptService extends BaseService<Prompt> {
         return folders.ensureDefaultFolder(prompt.getOwnerId());
     }
 
+    /**
+     * Reconciles prompt tags with the requested names. The set copy avoids
+     * concurrent modification; names are normalized consistently; missing tags
+     * are created under the prompt owner, not the current admin caller.
+     */
     private void syncTags(Prompt prompt, Set<String> requested) {
         Set<String> wanted = requested == null ? Set.of() : requested.stream()
                 .filter(Objects::nonNull)

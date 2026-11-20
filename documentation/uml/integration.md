@@ -41,7 +41,7 @@ classDiagram
         +roles(): Set<String>
         +isAdmin(): boolean
         -token(): Optional<JsonWebToken>
-        -claim(name): Optional<String>>
+        -claim(name): Optional<String>
     }
     class MeResource {
         +me(): MeResponse

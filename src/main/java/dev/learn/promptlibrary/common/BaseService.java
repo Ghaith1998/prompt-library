@@ -20,6 +20,10 @@ public abstract class BaseService<E extends BaseEntity> {
                         "%s %d not found".formatted(entityName(), id)));
     }
 
+    /**
+     * Rejects a duplicate globally scoped entity name. Per-owner resources such as
+     * tags must perform their ownership-scoped duplicate check instead of using this.
+     */
     protected final void validateNameUnique(String name) {
         if (repository().find("name", name).firstResultOptional().isPresent()) {
             throw new ConflictException("%s '%s' already exists".formatted(entityName(), name));

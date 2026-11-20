@@ -15,6 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
  * The API contract lives here. SmallRye OpenAPI reads the Bean Validation annotations
  * (@NotBlank -> required, @Size -> maxLength ...) so you don't document the same rule twice.
  */
+/** Prompt write contract; absent folder keeps/defaults placement as documented per field. */
 @Schema(name = "PromptRequest", description = "Payload to create or update a prompt")
 public record PromptRequest(
 

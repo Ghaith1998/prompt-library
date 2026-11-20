@@ -40,6 +40,7 @@ public class CategoryService extends BaseService<Category> {
         return CategoryResponse.from(category);
     }
 
+    /** Prevents foreign-key violations by blocking categories still used by prompts. */
     @Transactional
     public void delete(Long id) {
         Category category = loadRequired(id);

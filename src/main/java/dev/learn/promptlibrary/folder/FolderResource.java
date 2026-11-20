@@ -25,6 +25,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestResponse;
 
+/**
+ * HTTP boundary for personal folder management. All methods require authentication;
+ * owner scoping, default-folder protection, cross-owner rules and cycle detection
+ * live in {@link FolderService}.
+ */
 @Path("/api/folders")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

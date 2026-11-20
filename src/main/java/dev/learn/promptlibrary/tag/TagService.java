@@ -11,6 +11,10 @@ import dev.learn.promptlibrary.security.CurrentUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+/**
+ * Business rules for owner-scoped tags. Tags are unique per owner rather than
+ * globally; admins see/modify all, normal users get 404 for foreign-owned data.
+ */
 @ApplicationScoped
 public class TagService extends BaseService<Tag> {
 
@@ -59,6 +63,7 @@ public class TagService extends BaseService<Tag> {
         return TagResponse.from(tag);
     }
 
+    /** Deletion is allowed only when no prompt currently references the tag. */
     @Transactional
     public void delete(Long id) {
         Tag tag = loadAccessible(id);
@@ -69,6 +74,7 @@ public class TagService extends BaseService<Tag> {
         tags.delete(tag);
     }
 
+    /** Returns 404 for a foreign-owned tag unless the caller is an admin. */
     private Tag loadAccessible(Long id) {
         Tag tag = loadRequired(id);
         if (!tag.getOwnerId().equals(currentUser.id()) && !currentUser.isAdmin()) {

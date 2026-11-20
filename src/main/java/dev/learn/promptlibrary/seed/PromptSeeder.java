@@ -18,7 +18,11 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
-/** Seeds through the ORM (entities + repositories), exactly like a Laravel seeder uses Eloquent models. */
+/**
+ * Fills development prompts up to 100 using deterministic titles. Ownership,
+ * folder and tag selection round-robin across the 50 fixed Keycloak subjects;
+ * existing titles are skipped so adding missing demo rows remains idempotent.
+ */
 @ApplicationScoped
 public class PromptSeeder implements Seeder {
 

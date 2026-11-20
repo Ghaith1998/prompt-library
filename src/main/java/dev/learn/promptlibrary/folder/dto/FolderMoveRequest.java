@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Positive;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Folder move payload; null parentId intentionally means the root level. */
 @Schema(name = "FolderMoveRequest", description = "Move a folder under another folder, or to the root")
 public record FolderMoveRequest(
         @Schema(description = "Target parent folder id; null moves the folder to the root", example = "42")

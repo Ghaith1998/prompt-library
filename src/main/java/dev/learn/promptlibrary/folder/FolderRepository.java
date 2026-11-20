@@ -8,6 +8,10 @@ import io.quarkus.panache.common.Sort;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
+/**
+ * Folder lookup and cheap count helpers. A default folder is specifically a
+ * root (parent IS NULL) named "default" for one owner.
+ */
 @ApplicationScoped
 public class FolderRepository implements PanacheRepository<Folder> {
 

@@ -10,6 +10,10 @@ import java.util.Optional;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
+/**
+ * Prompt persistence queries. The fetch graph preloads category, folder and tags
+ * so DTO mapping inside a service transaction does not trigger N+1/lazy access.
+ */
 @ApplicationScoped
 public class PromptRepository implements PanacheRepository<Prompt> {
 
@@ -20,6 +24,10 @@ public class PromptRepository implements PanacheRepository<Prompt> {
     /**
      * @param ownerId only this owner's prompts; null = everybody's (admin)
      * @param q       optional free text searched in title and content
+     */
+    /**
+     * Builds a parameterized owner/query filter dynamically. Null owner means
+     * admin-wide visibility; q is a case-insensitive substring match.
      */
     public List<Prompt> search(String ownerId, String q) {
         List<String> conditions = new ArrayList<>();

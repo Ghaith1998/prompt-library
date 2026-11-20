@@ -24,6 +24,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+/**
+ * HTTP boundary for prompt CRUD, search and folder moves. Authentication and
+ * request validation happen here; ownership/transactions are enforced in the service.
+ */
 @Path("/api/prompts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

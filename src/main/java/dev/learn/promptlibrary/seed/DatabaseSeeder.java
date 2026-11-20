@@ -14,8 +14,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
- * Runs every Seeder bean (sorted by order()) at startup, but only when app.seed.enabled=true
- * (on in %dev, off everywhere else).
+ * Coordinates all discovered seeder beans at startup when {@code app.seed.enabled}
+ * is true. Each profile controls that flag independently; seeders are sorted by
+ * their declared order and are expected to be idempotent.
  */
 @ApplicationScoped
 public class DatabaseSeeder {

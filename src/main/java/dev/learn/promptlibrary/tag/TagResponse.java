@@ -2,6 +2,7 @@ package dev.learn.promptlibrary.tag;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Tag projection, including the Keycloak subject owning the tag. */
 @Schema(name = "TagResponse")
 public record TagResponse(
         @Schema(example = "3") Long id,

@@ -13,7 +13,7 @@ public interface KeycloakConfig {
 
     String realm();
 
-    /** Login client: direct access grants. Public in prod, so the secret is optional. */
+    /** Password-grant client. The secret is optional to permit public-client deployments. */
     String clientId();
 
     Optional<String> clientSecret();
@@ -21,5 +21,6 @@ public interface KeycloakConfig {
     /** Registration client: client_credentials + service account. */
     String registerClientId();
 
+    /** Required for the client-credentials token used by registration. */
     String registerClientSecret();
 }

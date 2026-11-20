@@ -9,6 +9,10 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
 
+/**
+ * Identity endpoint: projects claims from the already validated access token
+ * through {@link CurrentUser}; it performs no database or Keycloak lookup.
+ */
 @Path("/api/me")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated

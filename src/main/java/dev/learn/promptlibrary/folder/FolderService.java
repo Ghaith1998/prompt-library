@@ -18,6 +18,11 @@ import dev.learn.promptlibrary.security.CurrentUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+/**
+ * Owns folder-tree rules: per-user default creation, owner-scoped naming,
+ * nesting/move validation and deletion safety. The default root is a reserved
+ * folder by owner/name; all tree mutations remain inside transactions.
+ */
 @ApplicationScoped
 public class FolderService extends BaseService<Folder> {
 
@@ -43,6 +48,10 @@ public class FolderService extends BaseService<Folder> {
         return FolderResponse.from(loadAccessible(id));
     }
 
+    /**
+     * Creates a root or nested folder. Nested folders inherit the parent's owner;
+     * the reserved default name and duplicate names are rejected for that owner.
+     */
     @Transactional
     public FolderResponse create(FolderRequest request) {
         Folder parent = request.parentId() == null ? null : loadAccessible(request.parentId());
@@ -98,6 +107,11 @@ public class FolderService extends BaseService<Folder> {
         folders.delete(folder);
     }
 
+    /**
+     * Reparents a non-default folder. A null parent requests the root; a
+     * non-null parent must share the folder owner. Cycle protection walks the
+     * target ancestry so a subtree cannot be attached below itself.
+     */
     @Transactional
     public FolderResponse move(Long id, FolderMoveRequest request) {
         Folder folder = loadAccessible(id);
@@ -135,6 +149,7 @@ public class FolderService extends BaseService<Folder> {
         return folder;
     }
 
+    /** Idempotently returns the owner's root default folder, creating it if absent. */
     @Transactional
     public Folder ensureDefaultFolder(String ownerId) {
         return folders.findDefault(ownerId).orElseGet(() -> {
@@ -146,6 +161,11 @@ public class FolderService extends BaseService<Folder> {
         });
     }
 
+    /**
+     * Walks upward from the proposed parent. Encountering the moving folder
+     * means the moved subtree would be detached into itself; the visited set
+     * also fails safely if malformed data already contains a cycle.
+     */
     private void ensureNotDescendant(Folder folder, Folder target) {
         Set<Long> visited = new HashSet<>();
         Folder cursor = target;

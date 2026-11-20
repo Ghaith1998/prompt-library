@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Validated self-registration data sent to the Keycloak Admin API. */
 @Schema(name = "RegisterRequest", description = "Self-registration payload")
 public record RegisterRequest(
         @Schema(example = "carol") @NotBlank @Size(min = 3, max = 50) String username,

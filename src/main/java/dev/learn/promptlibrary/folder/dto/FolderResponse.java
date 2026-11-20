@@ -4,6 +4,7 @@ import dev.learn.promptlibrary.folder.Folder;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Flat folder projection; parentId lets clients reconstruct the tree. */
 @Schema(name = "FolderResponse")
 public record FolderResponse(
         @Schema(example = "7") Long id,

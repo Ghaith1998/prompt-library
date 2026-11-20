@@ -2,6 +2,7 @@ package dev.learn.promptlibrary.auth.dto;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/** Keycloak token response normalized for the REST API. */
 @Schema(name = "LoginResponse", description = "Use accessToken as: Authorization: Bearer <accessToken>")
 public record LoginResponse(
         String accessToken,
