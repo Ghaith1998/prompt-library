@@ -184,31 +184,47 @@ Status name (`PromptStatus`), category/folder ids and names, ownerId, sorted tag
 
 ### Folders (`/api/folders`)
 
-- GET `/api/folders`: own tree as flat `id/name/ownerId/parentId/isDefault` (admin sees all).
-- GET `/api/folders/{id}`: fetch one owned/accessible folder.
-- POST `/api/folders`: `{ "name": "Backend", "parentId": null }` (root), or pass a parent id for nesting.
-- PUT `/api/folders/{id}`: rename; duplicate names per owner forbidden.
-- DELETE `/api/folders/{id}`: empty non-default folders only (204).
-- PUT `/api/folders/{id}/move`: `{ "parentId": <newParentId> }`; `null` puts folder at root.
+| Method | Path | Behavior |
+|---|---|---|
+| GET | `/api/folders` | Own folder tree as flat `id/name/ownerId/parentId/isDefault` (admin sees all) |
+| GET | `/api/folders/{id}` | Fetch one owned/accessible folder |
+| POST | `/api/folders` | Create a root folder, or nest it via optional `parentId` |
+| PUT | `/api/folders/{id}` | Rename a folder; duplicate names per owner are forbidden |
+| PUT | `/api/folders/{id}/move` | Move under another folder using `{ "parentId": <id> }`; `null` moves it to root |
+| DELETE | `/api/folders/{id}` | Delete an empty non-default folder; returns 204 |
 
-Default/root folder is automatically created when necessary, and can be seen from folder lists. You cannot rename, move, or delete it. Moving under itself or one of its descendants is a 409 (cycle detection walks the actual parent chain). Deleting a folder with prompts or child folders returns 409 as well.
+Creation example:
+
+```bash
+curl -s -X POST localhost:8080/api/folders -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Backend","parentId":null}'
+```
+
+The default/root folder is created automatically when necessary and can be seen in folder lists. It cannot be renamed, moved, or deleted. Moving a folder under itself or one of its descendants returns 409 (cycle detection walks the actual parent chain). Deleting a folder that still contains prompts or child folders also returns 409.
 
 ### Tags (`/api/tags`)
 
-- GET `/api/tags` plus optional `?q=`: own tags only; admins see all with substring filtering.
-- GET `/api/tags/{id}`: read a tag by id, or 404 if not yours.
-- POST `/api/tags`: creates an owner-scoped tag, trims and lowercases names; duplicate name per owner returns 409.
-- PUT `/api/tags/{id}`: rename a tag, with a per-owner duplicate check.
-- DELETE `/api/tags/{id}`: delete an unused tag; any existing prompt association returns 409.
+| Method | Path | Behavior |
+|---|---|---|
+| GET | `/api/tags` | List own tags (admin sees all); optional `?q=` filters names |
+| GET | `/api/tags/{id}` | Read a tag by id, or 404 if not yours |
+| POST | `/api/tags` | Create an owner-scoped tag; names are trimmed/lowercased and must be unique per owner |
+| PUT | `/api/tags/{id}` | Rename a tag with a per-owner duplicate check |
+| DELETE | `/api/tags/{id}` | Delete an unused tag; 409 while any prompt still references it |
 
-Two users can own identically named tags: DB uniqueness is `(owner_id, name)`, not a global name.
+Two users can own identically named tags: database uniqueness is `(owner_id, name)`, not a global name.
 
 ### Categories (`/api/categories`)
 
-- GET `/api/categories`: globally shared sorted names (authenticated users).
-- POST/PUT/DELETE + `/{id}`: **admin-only**.
-- Duplicate names or deleting a category referenced by prompts → 409.
-- Non-admin writes → 403.
+| Method | Path | Behavior |
+|---|---|---|
+| GET | `/api/categories` | List globally shared categories, sorted by name (authenticated users) |
+| POST | `/api/categories` | Create a category; **admin-only** |
+| PUT | `/api/categories/{id}` | Rename a category; **admin-only** |
+| DELETE | `/api/categories/{id}` | Delete an unused category; **admin-only**; 409 when referenced by prompts |
+
+Non-admin write attempts return 403. Category names are globally unique, and deleting a category that is still referenced by prompts is rejected.
 
 ### Access rules summary
 
