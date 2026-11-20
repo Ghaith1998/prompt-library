@@ -129,6 +129,14 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/prompts' -Headers $headers
 
 Swagger UI alternative: obtain `accessToken`, click **Authorize**, and paste it as provided (without any prefix).
 
+Register a new Keycloak account through the application (choose another unique username if this one has already been used):
+
+```bash
+curl -s -X POST localhost:8080/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"newuser01","email":"newuser01@example.com","password":"S3cret-pass!","firstName":"New","lastName":"User"}'
+```
+
 ### 5. Stop / restart / clean reset
 
 `/tmp` is not used for persistence.
@@ -202,6 +210,42 @@ Two users can own identically named tags: DB uniqueness is `(owner_id, name)`, n
 - Duplicate names or deleting a category referenced by prompts → 409.
 - Non-admin writes → 403.
 
+### Access rules summary
+
+- Normal users only list/read/change their own prompts, folders and tags. A foreign-owned ID returns **404**, not 403.
+- `admin` can see and manage all prompts/folders/tags and is the only role allowed to create, rename or delete categories.
+- Prompts must stay in a folder owned by the prompt owner; folder trees cannot mix owners. This invariant is enforced even for admins.
+- The `default` folder is a per-user root, created lazily, and cannot be renamed, moved or deleted.
+- Prompt/status/tag/category/folder relations are owned by the service layer; resources only handle HTTP, security annotations, validation and response construction.
+
+## Project structure and Quarkus mapping
+
+```text
+dev.learn.promptlibrary
+├── prompt/       Prompt entity · repository · service · resource · dto/
+├── folder/       Folder tree entity · repository · service · resource · dto/
+├── tag/          owner-scoped Tag entity · repository · service · resource · DTOs
+├── category/     global Category entity · repository · service · resource · dto/
+├── auth/         public login/register resource · KeycloakConfig · JDK HttpClient adapter · DTOs
+├── security/     CurrentUser token adapter · /api/me
+├── seed/         Seeder contract · startup coordinator · ordered category/folder/tag/prompt seeders
+└── common/       BaseEntity · BaseService · domain exceptions · uniform exception mapper · ApiError
+```
+
+The feature flow is **Resource → Service → Panache Repository → DTO**. DTO mapping happens inside the service's transaction because Quarkus does not enable open-session-in-view. `BaseService` only shares ID lookup/name validation; ownership, transactions, folder rules and tag reconciliation stay in each concrete service.
+
+Spring Boot → Quarkus cheat sheet:
+
+| Spring Boot | Quarkus / Jakarta REST |
+|---|---|
+| `@RestController` / `@RequestMapping` | `@Path` resource class and method |
+| `@Service` | `@ApplicationScoped` (plus `@Transactional`) |
+| `@Autowired` fields | Single constructor injection / `@Inject` |
+| `JpaRepository` | `PanacheRepository` |
+| `@ControllerAdvice` / `@ExceptionHandler` | `@ServerExceptionMapper` |
+| `application.yml` profiles | `%dev.`, `%test.`, `%staging.`, `%prod.` prefixes |
+| Spring Security filter chain | Quarkus OIDC resource server + annotations such as `@Authenticated` / `@RolesAllowed` |
+
 ## Tests and build
 
 Dev tests start **their own disposable MySQL and Keycloak**, not the Compose ones. Docker must be running. No live tokens are necessary because tests use `@TestSecurity`.
@@ -264,6 +308,14 @@ KEYCLOAK_REGISTER_CLIENT_ID, KEYCLOAK_REGISTER_CLIENT_SECRET
 
 Current staging/prod defaults use the local-style `prompt-library` realm and `prompt-library-api` client, and no access-token audience check to match that realm. If using `promptlib-edge` / split clients again, enable audience validation and matching Keycloak audience mapper deliberately.
 
+### Keycloak notes
+
+- Realm `prompt-library` is imported from `keycloak/import/prompt-library-realm.json` on first startup. `--import-realm` does not update an existing realm; recreate the Keycloak data store if you changed that file.
+- Client `prompt-library-api` (secret `dev-secret-change-me`) has **service accounts** for `/api/auth/register` and **direct access grants** for `/api/auth/login`.
+- The password grant is suitable for learning and scripts. A real frontend should use Authorization Code + PKCE directly against Keycloak.
+- Only the `admin` role is checked explicitly. All other authenticated users follow normal-user ownership rules. Keycloak 24+ requires first name, last name and e-mail or password login fails with “Account is not fully set up”.
+- The realm contains 50 fixed user IDs matching `SeedUsers`; changing or recreating users with different IDs can make existing seeded prompts/folders/tags appear ownerless.
+
 ## Database migrations and seed data
 
 Flyway exclusively owns SQL DDL (`quarkus.hibernate-orm.schema-management.strategy=none`). Current migrations cover:
@@ -283,14 +335,50 @@ Dev seed order is **Category → Folder → Tag → Prompt** (`order()` 10/15/20
 - Two tags per generated prompt by default; the join count is larger than 100 because joins store one row per prompt-tag pair.
 - Seeders are idempotent through name/title lookups; existing records are not removed. Repeated runs can yield larger totals if old or custom data remains.
 
+### Flyway cheat sheet
+
+- Migrations live in `src/main/resources/db/migration/V<n>__description.sql` and are recorded in `flyway_schema_history`.
+- **Never edit a migration that has been applied anywhere.** Current head is V6; the next migration is `V7__...` (checksums are verified).
+- Existing-table NOT NULL additions use the nullable → backfill → tighten pattern demonstrated by V3/V4. Owner splits and folder backfills are demonstrated by V5/V6.
+- Hibernate never changes the schema (`schema-management.strategy=none`); Flyway is the only DDL owner.
+- Reset the local database completely with `docker compose down -v && docker compose up -d` (this also recreates Keycloak).
+- If adopting an existing database that was not created by Flyway, use a copy and configure:
+  ```properties
+  %staging.quarkus.flyway.baseline-on-migrate=true
+  %staging.quarkus.flyway.baseline-version=1
+  ```
+  This treats V1 as already applied and is not appropriate for a new empty schema.
+- For a packaged staging run:
+  ```bash
+  ./mvnw package
+  java -Dquarkus.profile=staging -jar target/quarkus-app/quarkus-run.jar
+  ```
+
+### Seeder design
+
+Seeders are reusable CDI beans: implement `Seeder`, annotate the class `@ApplicationScoped`, and return an ordering value. `DatabaseSeeder` discovers them through `Instance<Seeder>`, sorts by `order()`, and runs them only when `app.seed.enabled=true`. They use repositories/entities (ORM), never ad-hoc SQL, and must be idempotent because they may run on every startup.
+
+Fake/demo data belongs in seeders; structural or required production data belongs in Flyway migrations. `%dev` and currently `%staging` enable seeders, while `%prod` disables them. Review that setting before starting any external environment.
+
+### Entities: where to look
+
+- `prompt/Prompt.java` demonstrates owning lazy `@ManyToOne` category/folder relations, owning `@ManyToMany` tags via `prompt_tags`, `@Version` optimistic locking, string enums and the task-specific tag helpers.
+- `folder/Folder.java` demonstrates nullable self-reference (`parent`) plus inverse child/prompt sets without cascade.
+- `category/Category.java` and `tag/Tag.java` are inverse/read-only mirrors of the prompt side. Tags add per-owner composite uniqueness; categories use a global unique name.
+- `common/BaseEntity.java` centralizes generated IDs and creation/update timestamps.
+- Lazy fields are not serialized from resources: services map entities to response records inside `@Transactional` methods.
+
 ## Troubleshooting
 
 - **`java` / `mvnw` cannot find Java:** install Temurin 21 or set `JAVA_HOME` to JDK 21 before running the wrapper.
 - **Offline wrapper download fails:** wrapper requires network on first use; download it via another machine / cache Maven artifacts before running.
 - **`quarkus-bom` resolution problems:** verify `quarkus.platform.version` in `pom.xml` (currently 3.40.1.2); do not assume arbitrary versions exist.
+- **Keycloak image cannot be pulled:** pick a currently published 26.x tag in `docker-compose.yml`/staging compose file.
 - **Keycloak port/realm/admin page unavailable:** container is still starting, crashed, or using a different mapping/config. Inspect `docker compose logs keycloak`.
+- **401/OIDC errors during startup:** Keycloak may still be booting; wait ~30–60 seconds and retry. Also verify issuer, realm and host match between OIDC validation and outbound Keycloak settings.
 - **Registration returns 502:** Keycloak service account requires `realm-management.manage-users`.
 - **Realm has no newly added users:** `--import-realm` does not update an existing realm. Remove its data store and start fresh, or add/update users through Admin API.
+- **Seeded prompts are invisible:** Keycloak must have been started from the bundled realm file. Seed data uses fixed IDs (`6f1c2b0e-...`) matching `SeedUsers`; users created with different IDs cannot own those rows.
 - **401 on valid-looking endpoints:** use `Authorization: Bearer <accessToken>`, ensure realm URLs match on both outbound Keycloak settings and incoming OIDC validation.
 - **Startup hangs on `localhost:8080` usage:** app may still be starting, or another process already has the port; change `quarkus.http.port`.
 - **Tests fail with "Docker daemon" error:** `mvn test` uses disposable containers. No `%test` database config is intended.
